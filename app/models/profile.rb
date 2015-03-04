@@ -1,13 +1,17 @@
-class Profile < ActiveRecord
+class Profile < ActiveRecord::Base
   validates :username, presence: true, uniqueness: true
   before_create :parse
 
+  def initialize(username)
+    @username = username
+  end
+
   def self.create_from_username(username)
     response = HTTParty.get(
-      "https://api.github.com/users/#{username}",
-      :headers => {"Authorization" => "token #{ENV['GITHUB_TOKEN']}"
-                  "User-Agent" => "anyone"
-                  }
+        "https://api.github.com/users/#{username}",
+        :headers => {"Authorization" => "token #{ENV['GITHUB_TOKEN']}",
+                     "User-Agent" => "anyone"
+                    }
     )
     if response["login"]
       Profile.create(body: response)
@@ -16,44 +20,15 @@ class Profile < ActiveRecord
     end
   end
 
-  def initialize(username)
-    @content = HTTParty.get(
-        "https://api.github.com/users/#{username}",
-        :headers => {"Authorization" => "token #{ENV['GITHUB_TOKEN']}",
-                     "User-Agent" => "anyone"
-                    }
-    )
-  end
-
-  def username
-    @content["login"]
-  end
-
-  def avatar_url
-    @content["avatar_url"]
-  end
-
-  def location
-    @content["location"]
-  end
-
-  def company_name
-    @content["company"]
-  end
-
-  def number_of_followers
-    @content["followers"]
-  end
-
-  def number_following
-    @content["following"]
-  end
-
   private
 
   def parse
     number_following = body["following"]
-    #...
+    number_of_followers = body["followers"]
+    company = body["company"]
+    location = body["location"]
+    avatar_url = body["avatar_url"]
+    username = body["login"]
   end
 
 
